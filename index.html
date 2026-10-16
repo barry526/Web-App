@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黃光設備：晶圓重洗與防破片挑戰</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: #1e293b;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-cyan: #06b6d4;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            color: var(--accent-cyan);
+            margin-bottom: 4px;
+        }
+
+        header p {
+            color: var(--text-sub);
+            font-size: 0.85rem;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 650px;
+            background-color: var(--panel-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item { text-align: center; }
+        .stat-label { font-size: 0.7rem; color: var(--text-sub); text-transform: uppercase; }
+        .stat-value { font-size: 1.15rem; font-weight: bold; }
+        #score { color: var(--accent-green); }
+        #yieldRate { color: var(--accent-cyan); }
+        #timer { color: var(--accent-yellow); }
+
+        .wet-bench-viewport {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            background: radial-gradient(circle, #1e293b 0%, #090d16 100%);
+            border-radius: 12px;
+            border: 2px solid #334155;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .wafer-card {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, #fcd34d 0%, #d97706 70%);
+            border-radius: 50%;
+            border: 4px solid #fef3c7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+            padding: 10px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .wafer-title { font-size: 0.8rem; font-weight: bold; color: #0f172a; }
+        .wafer-desc { font-size: 0.65rem; color: #78350f; font-weight: bold; margin-top: 4px; }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn-action {
+            padding: 15px 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-action:active { transform: scale(0.96); }
+        .btn-action span { font-size: 0.7rem; font-weight: normal; opacity: 0.85; }
+
+        #btn-strip { background-color: #d97706; }
+        #btn-rinse { background-color: #0891b2; }
+        #btn-scrap { background-color: #dc2626; }
+
+        .msg-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            min-height: 42px;
+        }
+
+        .overlay-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            text-align: center;
+            padding: 20px;
+            border-radius: 16px;
+        }
+
+        .overlay-screen h2 {
+            font-size: 1.5rem;
+            color: var(--accent-cyan);
+            margin-bottom: 10px;
+        }
+
+        .overlay-screen p {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            margin-bottom: 20px;
+            max-width: 85%;
+            line-height: 1.5;
+        }
+
+        .btn-primary {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-primary:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>黃光設備：晶圓重洗與防破片挑戰</h1>
+        <p>Wafer Rework & Strip Wet Bench Simulator (Anti-Breakage Edition)</p>
+    </header>
+
+    <div class="game-container">
+        <div class="overlay-screen" id="startScreen">
+            <h2>進入溼製程清洗區 (Wet Bench)</h2>
+            <p>產線送來了各種需要清洗或重工 (Rework) 的晶圓！<br>⚠️ <strong>注意：</strong>機械手臂夾持脆弱，若點擊過快會造成<strong>晶圓破片 (Wafer Breakage)</strong> 並重扣良率！請冷靜操作：<br><strong>① 去光阻槽 ➔ ② 純水清洗槽 ➔ ③ 直接報廢</strong></p>
+            <button class="btn-primary" onclick="startGame()">開始清洗作業</button>
+        </div>
+
+        <div class="dashboard">
+            <div class="stat-item">
+                <div class="stat-label">成功處理</div>
+                <div class="stat-value" id="score">0 片</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">產線良率</div>
+                <div class="stat-value" id="yieldRate">100%</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">值班倒數</div>
+                <div class="stat-value" id="timer">35s</div>
+            </div>
+        </div>
+
+        <div class="wet-bench-viewport" id="viewport">
+            <div class="wafer-card" id="currentWaferCard">
+                <div class="wafer-title" id="wTitle">載入中...</div>
+                <div class="wafer-desc" id="wDesc">請點擊開始</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <button class="btn-action" id="btn-strip" onclick="handleProcess('strip')">
+                🧪 去光阻槽
+                <span>[ Photoresist Strip ]</span>
+            </button>
+            <button class="btn-action" id="btn-rinse" onclick="handleProcess('rinse')">
+                💧 純水沖洗槽
+                <span>[ DI Water Rinse ]</span>
+            </button>
+            <button class="btn-action" id="btn-scrap" onclick="handleProcess('scrap')">
+                🗑️ 直接報廢
+                <span>[ Scrap / Burn ]</span>
+            </button>
+        </div>
+
+        <div class="msg-box" id="msgBox">
+            機台準備就緒，請注意操作速度，避免破片...
+        </div>
+    </div>
+
+    <script>
+        const defectTypes = [
+            { type: 'strip', title: '光阻殘留', desc: '曝光/顯影失敗，需洗掉重來', hint: '應投入 [去光阻槽]' },
+            { type: 'rinse', title: '表面微塵', desc: 'Cleanroom 顆粒汙染，需純水沖洗', hint: '應投入 [純水沖洗槽]' },
+            { type: 'scrap', title: '嚴重刮傷', desc: '基板損壞，無法挽救', hint: '應直接 [報廢]' }
+        ];
+
+        let gameActive = false;
+        let score = 0;
+        let yieldRate = 100;
+        let timeLeft = 35;
+        let gameTimer = null;
+        let currentWafer = null;
+        let lastClickTime = 0;
+
+        const scoreDisplay = document.getElementById('score');
+        const yieldDisplay = document.getElementById('yieldRate');
+        const timerDisplay = document.getElementById('timer');
+        const msgBox = document.getElementById('msgBox');
+        const startScreen = document.getElementById('startScreen');
+        const wTitle = document.getElementById('wTitle');
+        const wDesc = document.getElementById('wDesc');
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameActive = true;
+            score = 0;
+            yieldRate = 100;
+            timeLeft = 35;
+            lastClickTime = 0;
+
+            updateUI();
+            spawnNextWafer();
+
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                updateUI();
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateUI() {
+            timerDisplay.textContent = timeLeft + 's';
+            scoreDisplay.textContent = score + ' 片';
+            yieldDisplay.textContent = Math.round(yieldRate) + '%';
+        }
+
+        function spawnNextWafer() {
+            if (!gameActive) return;
+            const randomDefect = defectTypes[Math.floor(Math.random() * defectTypes.length)];
+            currentWafer = randomDefect;
+
+            wTitle.textContent = currentWafer.title;
+            wDesc.textContent = currentWafer.desc;
+        }
+
+        function handleProcess(actionType) {
+            if (!gameActive || !currentWafer) return;
+
+            const now = Date.now();
+            if (lastClickTime && (now - lastClickTime < 400)) {
+                yieldRate = Math.max(0, yieldRate - 15);
+                msgBox.textContent = `💥 操作過快！機械手臂夾碎晶圓發生【破片 (Wafer Breakage)】！良率重扣 15%！`;
+                msgBox.style.color = 'var(--accent-red)';
+                lastClickTime = now;
+                updateUI();
+                if (yieldRate <= 0) endGame();
+                return;
+            }
+            lastClickTime = now;
+
+            if (actionType === currentWafer.type) {
+                score++;
+                yieldRate = Math.min(100, yieldRate + 3);
+                msgBox.textContent = `✅ 處理正確！成功完成清洗與重工。`;
+                msgBox.style.color = 'var(--accent-green)';
+            } else {
+                yieldRate = Math.max(0, yieldRate - 8);
+                msgBox.textContent = `❌ 處理錯誤！${currentWayHint()}，良率下降！`;
+                msgBox.style.color = 'var(--accent-red)';
+            }
+
+            updateUI();
+            if (yieldRate <= 0) {
+                endGame();
+            } else {
+                spawnNextWafer();
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(gameTimer);
+
+            let title = '';
+            let desc = '';
+            if (yieldRate >= 75 && score >= 8) {
+                title = '👑 溼製程清洗與防破片達人';
+                desc = `太神啦！完美掌控手速與化學槽分類，成功處理 ${score} 片晶圓，良率保持在 ${Math.round(yieldRate)}%！`;
+            } else {
+                title = '📈 實習生再加油';
+                desc = `共處理了 ${score} 片晶圓。記得操作機台不要太急躁，才不會常常發生破片喔！`;
+            }
+
+            startScreen.style.display = 'flex';
+            startScreen.innerHTML = `
+                <h2>${title}</h2>
+                <p style="color: var(--text-main); font-weight: bold; margin-bottom: 5px;">成功處理：${score} 片 | 最終良率：${Math.round(yieldRate)}%</p>
+                <p>${desc}</p>
+                <button class="btn-primary" onclick="startGame()">再次挑戰</button>
+            `;
+        }
+    </script>
+</body>
+</html>
