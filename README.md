@@ -1,9 +1,7 @@
 # Web-App
 主題 : 黃光設備：晶圓重洗與防破片挑戰
 
-一、 網站連結 (GitHub Pages)：
-
-https://barry526.github.io/Web-App/
+一、 網站連結 (GitHub )：
 
 https://github.com/barry526/Web-App.git
 
@@ -26,6 +24,10 @@ https://github.com/barry526/Web-App.git
    - 模擬真實無塵室中因急躁操作導致機械手臂夾碎晶圓的狀況。若點擊過快（小於 0.4 秒連續點擊），會觸發破片懲罰並重扣良率。
 3. 限時挑戰與結算評價：
    - 35 秒倒數結束後，依據最終處理的晶圓數量與良率給予專屬的工程師職稱評價。
+  
+四、Web-App連結
+
+https://barry526.github.io/Web-App/
 
 【技術架構】
 - 採用單一 index.html 檔案實作（HTML5 + CSS3 Flexbox 佈局 + 原生 JavaScript 狀態計時與防呆點擊演算法）。
